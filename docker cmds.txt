@@ -1,0 +1,8 @@
+| Command | Purpose                      |
+| ------- | ---------------------------- |
+| FROM    | Base image                   |
+| WORKDIR | Set working directory        |
+| COPY    | Copy files                   |
+| RUN     | Execute command during build |
+| EXPOSE  | Define port                  |
+| CMD     | Start application            |
