@@ -1,0 +1,286 @@
+# 🚀 Docker + AWS (ECR & ECS) Complete Guide
+
+This guide covers:
+
+- Docker setup
+- AWS CLI setup
+- Amazon ECR (push/pull images)
+- Amazon ECS deployment
+- Common Docker commands
+- Full production workflow
+
+---
+
+# 1️⃣ Install & Verify Docker
+
+Check Docker version:
+
+```bash
+docker --version
+docker info
+```
+
+Start Docker (Linux):
+
+```bash
+sudo systemctl start docker
+```
+
+Enable Docker on boot:
+
+```bash
+sudo systemctl enable docker
+```
+
+---
+
+# 2️⃣ Install & Configure AWS CLI
+
+Install AWS CLI (if not installed):
+
+```bash
+aws --version
+```
+
+Configure AWS credentials:
+
+```bash
+aws configure
+```
+
+You will enter:
+
+- AWS Access Key
+- AWS Secret Key
+- Region (example: us-east-1)
+- Output format (json)
+
+Verify identity:
+
+```bash
+aws sts get-caller-identity
+```
+
+---
+
+# 3️⃣ Login to Amazon ECR
+
+Replace:
+
+- REGION
+- ACCOUNT_ID
+
+```bash
+aws ecr get-login-password --region REGION | \
+docker login --username AWS --password-stdin ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com
+```
+
+Example:
+
+```bash
+aws ecr get-login-password --region us-east-1 | \
+docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-east-1.amazonaws.com
+```
+
+---
+
+# 4️⃣ Create an ECR Repository
+
+```bash
+aws ecr create-repository --repository-name my-app
+```
+
+List repositories:
+
+```bash
+aws ecr describe-repositories
+```
+
+---
+
+# 5️⃣ Build Docker Image
+
+Build image locally:
+
+```bash
+docker build -t my-app .
+```
+
+Check images:
+
+```bash
+docker images
+```
+
+---
+
+# 6️⃣ Tag Image for ECR
+
+```bash
+docker tag my-app:latest ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/my-app:latest
+```
+
+---
+
+# 7️⃣ Push Image to ECR
+
+```bash
+docker push ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/my-app:latest
+```
+
+---
+
+# 8️⃣ Pull Image from ECR
+
+```bash
+docker pull ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/my-app:latest
+```
+
+---
+
+# 9️⃣ Run Container Locally
+
+Run normally:
+
+```bash
+docker run -p 3000:3000 my-app
+```
+
+Run in detached mode:
+
+```bash
+docker run -d -p 3000:3000 my-app
+```
+
+Run with environment variables:
+
+```bash
+docker run -d -p 3000:3000 \
+  -e NODE_ENV=production \
+  my-app
+```
+
+---
+
+# 🔟 Common Docker Commands
+
+## List containers
+
+```bash
+docker ps
+docker ps -a
+```
+
+## Stop container
+
+```bash
+docker stop CONTAINER_ID
+```
+
+## Remove container
+
+```bash
+docker rm CONTAINER_ID
+```
+
+## Remove image
+
+```bash
+docker rmi IMAGE_ID
+```
+
+## View logs
+
+```bash
+docker logs CONTAINER_ID
+```
+
+## Execute into container
+
+```bash
+docker exec -it CONTAINER_ID sh
+```
+
+---
+
+# 🏗 Deploy to Amazon ECS
+
+After pushing new image to ECR:
+
+Force new deployment:
+
+```bash
+aws ecs update-service \
+  --cluster my-cluster \
+  --service my-service \
+  --force-new-deployment
+```
+
+Check services:
+
+```bash
+aws ecs list-services --cluster my-cluster
+```
+
+Describe service:
+
+```bash
+aws ecs describe-services \
+  --cluster my-cluster \
+  --services my-service
+```
+
+---
+
+# 🔄 Full Production Workflow
+
+```bash
+# 1. Build image
+docker build -t my-app .
+
+# 2. Tag image
+docker tag my-app:latest ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/my-app:latest
+
+# 3. Login to ECR
+aws ecr get-login-password --region REGION | \
+docker login --username AWS --password-stdin ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com
+
+# 4. Push image
+docker push ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/my-app:latest
+
+# 5. Deploy update
+aws ecs update-service \
+  --cluster my-cluster \
+  --service my-service \
+  --force-new-deployment
+```
+
+---
+
+# 🧱 Optional: Example Dockerfile (Node.js)
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --production
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+```
+
+---
+
+# ✅ Done
+
+You now have:
+
+- Docker → Build
+- ECR → Store Image
+- ECS → Deploy Container
+- Full production workflow
