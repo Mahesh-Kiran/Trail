@@ -274,13 +274,3 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
----
-
-# ✅ Done
-
-You now have:
-
-- Docker → Build
-- ECR → Store Image
-- ECS → Deploy Container
-- Full production workflow
