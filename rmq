@@ -337,3 +337,326 @@ async function receiveMessages() {
 
 receiveMessages();
 
+
+
+many to one
+// producer_app_A.js
+const amqp = require("amqplib");
+
+async function sendFromA() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+  const queueName = "central_logs"; // Same name for all!
+
+  await channel.assertQueue(queueName, { durable: true });
+  channel.sendToQueue(queueName, Buffer.from("Log from Service A"));
+  console.log("Sent from A");
+  setTimeout(() => connection.close(), 500);
+}
+sendFromA();
+
+// producer_app_B.js
+async function sendFromB() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+  const queueName = "central_logs";
+
+  await channel.assertQueue(queueName, { durable: true });
+  channel.sendToQueue(queueName, Buffer.from("Log from Service B"));
+  console.log("Sent from B");
+  setTimeout(() => connection.close(), 500);
+}
+sendFromB();
+
+// collector_subscriber.js
+const amqp = require("amqplib");
+
+async function startCollector() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+  const queueName = "central_logs";
+
+  await channel.assertQueue(queueName, { durable: true });
+
+  console.log("Waiting for logs from ALL services...");
+  channel.consume(queueName, (msg) => {
+    if (msg) {
+      console.log(`Aggregated: ${msg.content.toString()}`);
+      channel.ack(msg);
+    }
+  });
+}
+startCollector();
+
+
+
+default exchange
+import pika
+
+# Establish a connection to RabbitMQ
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+# Declare an exchange (we'll use the default direct exchange here)
+#channel.exchange_declare(exchange='', exchange_type='direct')
+
+# Declare a queue named 'hello'
+channel.queue_declare(queue='hello')
+
+# Bind the queue to the default exchange with a routing key 'hello'
+#channel.queue_bind(exchange='', queue='hello', routing_key='hello')
+
+# The message to send
+message = 'Hello, World!'
+
+# Publish the message to the exchange with the routing key 'hello'
+channel.basic_publish(exchange='',
+                      routing_key='hello',
+                      body=message)
+
+print(f" [x] Sent '{message}'")
+
+# Close the connection
+connection.close()
+
+import pika
+
+# Establish a connection to RabbitMQ
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+# Declare the queue 'hello' (it needs to exist)
+channel.queue_declare(queue='hello')
+
+# Define a callback function to process incoming messages
+def callback(ch, method, properties, body):
+    print(f" [x] Received '{body.decode()}'")
+
+# Tell RabbitMQ to consume messages from the 'hello' queue
+channel.basic_consume(queue='hello',
+                      on_message_callback=callback,
+                      auto_ack=True)
+
+print(' [*] Waiting for messages. To exit press CTRL+C')
+
+# Start consuming messages (this will block until a message is received)
+channel.start_consuming()
+
+
+header exchange
+import pika
+
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters('localhost')
+)
+channel = connection.channel()
+
+channel.exchange_declare(
+    exchange='headers_logs',
+    exchange_type='headers'
+)
+
+headers = {
+    'format': 'pdf',
+    'type': 'report'
+}
+
+channel.basic_publish(
+    exchange='headers_logs',
+    routing_key='',
+    body='Headers Exchange Message',
+    properties=pika.BasicProperties(headers=headers)
+)
+
+print(" [x] Sent headers message")
+connection.close()
+
+import pika
+
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters('localhost')
+)
+channel = connection.channel()
+
+channel.exchange_declare(
+    exchange='headers_logs',
+    exchange_type='headers'
+)
+
+result = channel.queue_declare(queue='', exclusive=True)
+queue_name = 'hqueue'
+
+channel.queue_bind(
+    exchange='headers_logs',
+    queue=queue_name,
+    arguments={
+        'x-match': 'all',
+        'format': 'pdf',
+        'type': 'report'
+    }
+)
+
+def callback(ch, method, properties, body):
+    print(" [x] Received:", body.decode())
+
+channel.basic_consume(
+    queue=queue_name,
+    on_message_callback=callback,
+    auto_ack=True
+)
+
+print("Waiting for headers messages...")
+channel.start_consuming()
+
+
+pub-sub-fanout
+import pika
+import sys
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+# Declare a exchange named in config file
+channel.exchange_declare(exchange='pub-sub', exchange_type='fanout')
+
+# Get message from user else send `info: Hello World!`
+# Example: python send.py Message1
+message = ' '.join(sys.argv[1:]) or "info: Hello World!"
+channel.basic_publish(exchange='pub-sub', routing_key='', body=message)
+
+print(" [x] Sent %r" % message)
+connection.close()
+
+import pika, sys
+sys.path.append('../')
+#import config as cfg
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+channel.exchange_declare(exchange='pub-sub', exchange_type='fanout')
+
+# Declare an anonymous, non-durable, exclusive, auto-delete queue
+result = channel.queue_declare(queue='', exclusive=True)
+# get the name of a queue declared by rabbitmq
+queue_name = result.method.queue
+
+# Bind the anonymous queue to the 'pub-sub' exchange
+channel.queue_bind(exchange='pub-sub', queue=queue_name)
+
+print(' [*] Waiting for logs. To exit press CTRL+C')
+def callback(ch, method, properties, body):
+    print(" [x] %r" % body)
+
+channel.basic_consume(queue=queue_name,
+                      on_message_callback=callback,
+                      auto_ack=True)
+
+channel.start_consuming()
+
+
+Topic Exchange
+import pika
+
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters('localhost')
+)
+channel = connection.channel()
+
+channel.exchange_declare(
+    exchange='topic_logs',
+    exchange_type='topic'
+)
+
+routing_key = 'system.error'
+message = 'System Error Occurred'
+
+channel.basic_publish(
+    exchange='topic_logs',
+    routing_key=routing_key,
+    body=message
+)
+
+print(" [x] Sent:", message)
+connection.close()
+
+import pika
+
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters('localhost')
+)
+channel = connection.channel()
+
+channel.exchange_declare(
+    exchange='topic_logs',
+    exchange_type='topic'
+)
+
+result = channel.queue_declare(queue='', exclusive=True)
+queue_name = result.method.queue
+
+channel.queue_bind(
+    exchange='topic_logs',
+    queue=queue_name,
+    routing_key='system.*'
+)
+
+def callback(ch, method, properties, body):
+    print(" [x] Received:", body.decode())
+
+channel.basic_consume(
+    queue=queue_name,
+    on_message_callback=callback,
+    auto_ack=True
+)
+
+print("Waiting for topic messages...")
+channel.start_consuming()
+
+worker queue
+import pika
+import sys
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+# durable true means even if rabbitmq server goes down before consumer consumes message, message will not be lost
+channel.queue_declare(queue='worker_queue', durable=True)
+
+# get message from user else send `Hello World!`
+# Example: python send.py Message1
+message = ' '.join(sys.argv[1:]) or "Hello World!"
+channel.basic_publish(
+    exchange='',
+    routing_key='worker_queue',
+    body=message,
+    properties=pika.BasicProperties(
+        delivery_mode=2,  # make message persistent
+    ))
+
+print(" [x] Sent %r" % message)
+connection.close()
+
+import pika
+import time
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+channel.queue_declare(queue='worker_queue', durable=True)
+# fetch only one task at a time
+channel.basic_qos(prefetch_count=1)
+
+print(' [*] Waiting for messages. To exit press CTRL+C')
+
+def callback(ch, method, properties, body):
+    print(" [x] Received %r" % body.decode())
+    time.sleep(body.count(b'.'))  # add timeout based on dots(.) in message Example: Message1... adds 3 seconds
+    print(" [x] Done")
+    ch.basic_ack(delivery_tag=method.delivery_tag) # Send acknowledgement instead of auto acknowledgement
+
+# if a worker is busy then message is delivered to next worker
+channel.basic_consume(queue='worker_queue', on_message_callback=callback, auto_ack=False)
+
+channel.start_consuming()
+
