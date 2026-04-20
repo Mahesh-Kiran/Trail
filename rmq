@@ -1,0 +1,339 @@
+direct-exchange
+producer
+const amqp = require("amqplib");
+
+async function sendMessage() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+
+  const exchangeName = "logs_exchange";
+  const exchangeType = "direct";
+  const queueName = "logs_queue";
+  const routingKey = "info";
+
+  await channel.assertExchange(exchangeName, exchangeType, {
+    durable: true
+  });
+
+  await channel.assertQueue(queueName, {
+    durable: true
+  });
+
+  await channel.bindQueue(queueName, exchangeName, routingKey);
+
+  const message = "Hello RabbitMQ with Exchange & Binding!";
+
+  channel.publish(
+    exchangeName,
+    routingKey,
+    Buffer.from(message)
+  );
+
+  console.log(" Message sent:", message);
+
+  setTimeout(() => {
+    connection.close();
+  }, 500);
+}
+
+sendMessage().catch(console.error);
+
+
+consumer
+const amqp = require("amqplib");
+
+async function receiveMessage() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+
+  const queueName = "logs_queue";
+
+  await channel.assertQueue(queueName, {
+    durable: true
+  });
+
+  console.log("Waiting for messages...");
+
+  channel.consume(queueName, (msg) => {
+    if (msg !== null) {
+      console.log("Received:", msg.content.toString());
+      channel.ack(msg);
+    }
+  });
+}
+
+receiveMessage().catch(console.error);
+
+
+
+
+
+-------------
+
+fanout-exchange
+publisher
+const amqp = require("amqplib");
+
+async function publishMessage() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+
+  const exchangeName = "logs";
+
+  await channel.assertExchange(exchangeName, "fanout", {
+    durable: false,
+  });
+
+  const message = "Hello Subscribers!.";
+
+  channel.publish(exchangeName, "", Buffer.from(message));
+  console.log(" [x] Sent:", message);
+
+  setTimeout(() => {
+    connection.close();
+    process.exit(0);
+  }, 500);
+}
+
+publishMessage();
+
+subscriber1
+const amqp = require("amqplib");
+
+async function receiveMessage() {
+  const url = "amqp://guest:guest@127.0.0.1:5672";
+
+  const connection = await amqp.connect(url);
+  const channel = await connection.createChannel();
+
+  const exchangeName = "logs";
+
+  await channel.assertExchange(exchangeName, "fanout", {
+    durable: false,
+  });
+
+  const q = await channel.assertQueue("", {
+    exclusive: true,
+  });
+
+  await channel.bindQueue(q.queue, exchangeName, "");
+
+  console.log(" [*] Waiting for messages. To exit press CTRL+C");
+
+  channel.consume(
+    q.queue,
+    (msg) => {
+      if (msg.content) {
+        console.log(" [x] Received:", msg.content.toString());
+      }
+    },
+    {
+      noAck: true,
+    }
+  );
+}
+
+receiveMessage();
+
+sub2
+const amqp = require("amqplib");
+
+async function receiveMessage() {
+  const url = "amqp://localhost";
+
+  const connection = await amqp.connect(url);
+  const channel = await connection.createChannel();
+
+  const exchangeName = "logs";
+
+  await channel.assertExchange(exchangeName, "fanout", {
+    durable: false,
+  });
+
+  const q = await channel.assertQueue("", {
+    exclusive: true,
+  });
+
+  await channel.bindQueue(q.queue, exchangeName, "");
+
+  console.log(" [*] Waiting for messages. To exit press CTRL+C");
+
+  channel.consume(
+    q.queue,
+    (msg) => {
+      if (msg.content) {
+        console.log(" [x] Received:", msg.content.toString());
+      }
+    },
+    {
+      noAck: true,
+    }
+  );
+}
+
+receiveMessage();
+
+-----------------------
+headers-exchange
+
+producer
+const amqp = require("amqplib");
+
+async function sendMessage() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+
+  const exchange = "header_logs";
+
+  await channel.assertExchange(exchange, "headers", { durable: false });
+
+  const message = "PDF Report Generated";
+
+  channel.publish(
+    exchange,
+    "", 
+    Buffer.from(message),
+    {
+      headers: {
+        format: "pdf",
+        type: "report"
+      }
+    }
+  );
+
+  console.log(" Message sent:", message);
+
+  setTimeout(() => {
+    connection.close();
+  }, 500);
+}
+
+sendMessage();
+
+consumer
+const amqp = require("amqplib");
+
+async function receiveMessage() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+
+  const exchange = "header_logs";
+  const queue = "header_queue";
+
+  await channel.assertExchange(exchange, "headers", { durable: false });
+  await channel.assertQueue(queue, { durable: false });
+
+  await channel.bindQueue(queue, exchange, "", {
+    "x-match": "all",
+    format: "pdf",
+    type: "report"
+  });
+
+  console.log(" Waiting for messages...");
+
+  channel.consume(queue, (msg) => {
+    if (msg) {
+      console.log(" Received:", msg.content.toString());
+      channel.ack(msg);
+    }
+  });
+}
+
+receiveMessage();
+
+------------
+topic-exchange
+producer.js
+const amqp = require("amqplib");
+
+async function sendMessage() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+
+  const exchange = "topic_logs";
+  const exchangeType = "topic";
+
+  await channel.assertExchange(exchange, exchangeType, { durable: false });
+
+  const messages = [
+    { key: "order.created", msg: "Order created" },
+    { key: "order.shipped", msg: "Order shipped" },
+    { key: "payment.success", msg: "Payment successful" },
+    { key: "order.created.online", msg: "Online order created" }
+  ];
+
+  messages.forEach(m => {
+    channel.publish(exchange, m.key, Buffer.from(m.msg));
+    console.log(`Sent [${m.key}] : ${m.msg}`);
+  });
+
+  setTimeout(() => {
+    connection.close();
+  }, 500);
+}
+
+sendMessage();
+
+
+// consumer1.js
+const amqp = require("amqplib");
+
+async function receiveMessages() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+
+  const exchange = "topic_logs";
+
+  await channel.assertExchange(exchange, "topic", { durable: false });
+
+  const q = await channel.assertQueue("", { exclusive: true });
+
+  await channel.bindQueue(q.queue, exchange, "order.*");
+  await channel.bindQueue(q.queue, exchange,"payment.success");
+
+  console.log("Consumer 1 waiting for messages (order.*)");
+
+  channel.consume(
+    q.queue,
+    msg => {
+      if (msg) {
+        console.log(`Consumer 1 received [${msg.fields.routingKey}] : ${msg.content.toString()}`);
+      }
+    },
+    { noAck: true }
+  );
+}
+
+receiveMessages();
+
+
+// consumer2.js
+const amqp = require("amqplib");
+
+async function receiveMessages() {
+  const connection = await amqp.connect("amqp://localhost");
+  const channel = await connection.createChannel();
+
+  const exchange = "topic_logs";
+
+  await channel.assertExchange(exchange, "topic", { durable: false });
+
+  const q = await channel.assertQueue("", { exclusive: true });
+
+  await channel.bindQueue(q.queue, exchange, "order.#");
+  await channel.bindQueue(q.queue, exchange, "*");
+  console.log("Consumer 2 waiting for messages (order.#)");
+
+  channel.consume(
+    q.queue,
+    msg => {
+      if (msg) {
+        console.log(`Consumer 2 received [${msg.fields.routingKey}] : ${msg.content.toString()}`);
+      }
+    },
+    { noAck: true }
+  );
+}
+
+receiveMessages();
+
