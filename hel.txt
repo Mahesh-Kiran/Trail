@@ -1,0 +1,329 @@
+Scenario-Based Questions
+Scenario 1: Application Not Loading
+You deployed an application using Elastic Beanstalk, but the application does not load and shows an error page.
+•	What could be the possible reasons for this issue? 
+•	Could deployment or configuration be incorrect? 
+•	How would you troubleshoot this problem? 
+________________________________________
+Scenario 2: Incorrect Application Structure
+Your application is deployed, but the expected output is not displayed.
+•	How does application structure affect deployment in Elastic Beanstalk? 
+•	What could happen if files are placed inside an extra folder? 
+•	How would you fix the structure issue? 
+________________________________________
+Scenario 3: Wrong Platform Selection
+While creating the environment, an incorrect platform was selected.
+•	Why is platform selection important in Elastic Beanstalk? 
+•	What kind of errors or behavior might occur? 
+•	How can you correct the platform without affecting the application? 
+________________________________________
+Scenario 4: Environment Health Warning
+The environment status shows Warning (Yellow) instead of healthy.
+•	What are possible reasons for this warning? 
+•	Which sections (Events, Logs, Metrics) would you check first? 
+•	How can you resolve health issues? 
+________________________________________
+Scenario 5: Application Errors in Logs
+Logs show a high number of application errors.
+•	What do such errors indicate? 
+•	Could this be due to misconfiguration or missing resources? 
+•	How would you analyze logs to identify the root cause? 
+________________________________________
+Scenario 6: Deployment Failure
+The application deployment fails during upload.
+•	What could be wrong with the deployment package? 
+•	Which logs would you check to diagnose the issue? 
+•	How can packaging errors affect deployment? 
+________________________________________
+Scenario 7: Works Locally but Not on Cloud
+The application works correctly on a local machine but fails after deployment.
+•	What environment differences could cause this issue? 
+•	Could configuration or dependency issues be responsible? 
+•	How would you debug using cloud logs? 
+________________________________________
+Scenario 8: Blank Output
+The application loads but shows no output.
+•	What could cause an application to display no output? 
+•	Could runtime errors or misconfigurations be responsible? 
+•	How would logs help in identifying the issue? 
+________________________________________
+Scenario 9: Application URL Not Accessible
+The application URL is not accessible after deployment.
+•	Could the environment still be launching? 
+•	What status indicators should be checked? 
+•	How can Events help identify the issue? 
+________________________________________
+Scenario 10: Resource Management Issue
+After completing the lab, resources were not terminated.
+•	What are the cost implications of leaving resources running? 
+•	Which AWS services continue running in the background? 
+•	How can all resources be properly terminated? 
+________________________________________
+Scenario 11: High Traffic Handling
+The application receives sudden high traffic.
+•	How does Elastic Beanstalk handle scaling? 
+•	What configurations should be enabled? 
+•	What happens if scaling is not configured? 
+________________________________________
+Scenario 12: Application Update Not Reflected
+Changes are made to the application, but users still see the old version.
+•	Could deployment issues be the reason? 
+•	How can caching affect the output? 
+•	How would you ensure the latest version is visible?
+
+
+
+Scenario Based Questions (ELB & Auto Scaling) 
+1)	A company hosts a web application on two EC2 instances, but sometimes one server becomes overloaded while the other remains idle.
+Which AWS service can distribute incoming traffic evenly across both servers?
+2)	A developer created multiple EC2 instances for a web application but wants users to access the application using a single entry point instead of multiple server IP addresses.
+Which AWS service can solve this problem?
+3)	An organization notices that during peak hours their application receives heavy traffic and servers become slow. During non-peak hours, many servers remain unused.
+Which AWS feature can automatically increase or decrease the number of servers based on demand?
+4)	A company deployed a load balancer but users are still getting errors because traffic is being sent to an unhealthy server.
+Which load balancer feature helps detect and stop sending traffic to failed servers?
+5)	A developer wants to automatically launch additional EC2 instances when CPU utilization exceeds 70%.
+Which AWS service configuration should be used to implement this requirement?
+6)	An application receives traffic from users worldwide, and the company wants to ensure that requests are distributed across multiple EC2 instances for high availability.
+How can Elastic Load Balancer help in this architecture?
+7)	A developer configured an Auto Scaling Group, but new instances are not launching even when traffic increases.
+What configuration might be missing or incorrect?
+8)	A company wants to maintain a minimum of two running servers at all times, but automatically add more servers when traffic increases.
+Which Auto Scaling configuration parameters should be defined?
+9)	A web application running on EC2 instances behind a load balancer suddenly crashes when traffic spikes.
+How can combining Elastic Load Balancer with Auto Scaling improve system reliability?
+10)	A developer created an Auto Scaling Group but forgot to attach it to a load balancer.
+What potential problem might occur in handling user requests?
+11)	A company wants to replace unhealthy EC2 instances automatically to maintain application availability.
+Which AWS feature can automatically detect and replace failed instances?
+12)	A developer wants to monitor the performance of EC2 instances and trigger scaling actions based on metrics such as CPU usage or network traffic.
+Which AWS service can provide these monitoring metrics?
+13)	A startup expects sudden spikes in website traffic during a promotional event and wants the infrastructure to automatically handle the load.
+How can Auto Scaling help manage this situation?
+14)	A developer wants to ensure that incoming user requests are routed to servers based on HTTP or HTTPS protocols.
+Which type of AWS load balancer should be used?
+15)	A company wants to build a highly available architecture where traffic is automatically balanced across multiple servers and new servers are launched when demand increases.
+Which AWS services should be combined to achieve this solution?
+Scenario Based Questions (SNS, SQS, S3-SNS-SQS-Lambda)
+1.	A company wants to send notifications to multiple users whenever an important system event occurs. The same message must be delivered to email, SMS, and application subscribers simultaneously.
+Which AWS service can be used to implement this publish-subscribe messaging system?
+2.	A developer created an SNS topic and added an email subscription, but the subscriber is not receiving any notifications.
+What could be the possible reason for this issue?
+3.	An organization wants to automatically notify administrators via email whenever a new file is uploaded to an S3 bucket.
+How can this be implemented using AWS services?
+4.	A developer configured an S3 bucket to trigger an SNS notification on file upload, but the message is not reaching the SNS topic.
+What configuration or permission issue might cause this problem?
+5.	A company wants to store incoming messages temporarily so that applications can process them later without losing data even if the system is busy.
+Which AWS messaging service should be used for this requirement?
+6.	A developer sends messages to an SQS queue, but when checking the queue no messages appear.
+What possible reasons could cause this issue?
+7.	A company wants to process thousands of messages coming from different applications without overloading the processing system.
+How does Amazon SQS help in handling this situation?
+8.	A developer wants to ensure that messages are processed automatically from an SQS queue without manually polling the queue.
+Which AWS service can be configured to automatically consume messages from SQS?
+9.	An application uploads files to S3, and the company wants the upload event to trigger a workflow that sends notifications and processes the message later.
+How can this be designed using S3, SNS, SQS, and Lambda?
+10.	A developer configured an SNS topic to send messages to an SQS queue, but the queue is not receiving any messages.
+What policy configuration might be missing?
+11.	A company wants to decouple its application components so that failures in one component do not affect others.
+Which AWS service combination can be used to implement loosely coupled communication?
+12.	A Lambda function is configured to process messages from an SQS queue, but the function is not being triggered.
+What possible configuration issue might cause this problem?
+13.	An organization wants to ensure that uploaded files in S3 trigger notifications, store messages reliably, and process them asynchronously.
+Which serverless architecture using AWS services can achieve this?
+14.	A developer wants to monitor the processing of messages handled by a Lambda function triggered by SQS.
+Which AWS service can be used to view logs and troubleshoot the function execution?
+15.	A company wants to build a fully serverless event-driven system where file uploads automatically trigger notifications and background processing without managing servers.
+Which AWS services can be combined to build this architecture?
+16.	•  A company wants to send a notification to multiple applications whenever a new order is placed in their system. Each application should receive the same message and process it independently.
+Which AWS service can be used to implement this publish-subscribe communication model?
+17.	•  A developer configured an SNS topic and connected it to an SQS queue, but the messages published to SNS are not appearing in the queue.
+What configuration or permission might be missing in this setup?
+18.	•  An application generates a large number of events, and the development team wants to ensure that these events are stored safely until they are processed by another service.
+Which AWS service can be used to reliably store and deliver these messages?
+19.	A company uploads files to an S3 bucket and wants to process these files using Lambda, but only after the messages are safely stored to avoid data loss during high traffic.
+Which AWS architecture using SNS and SQS can help achieve this requirement?
+20.	A developer notices that messages remain in an SQS queue even after being processed by a Lambda function.
+What configuration or step might be missing to ensure messages are removed after processing?
+
+
+scenario-based questions on IAM Roles, Users, Groups, and Policies in Amazon Web Services.
+1.	A new developer joins your team and needs access to EC2 and S3. How will you grant permissions securely? 
+2.	A user requires access to AWS resources for only two days. How can you provide temporary access? 
+3.	A developer accidentally exposed AWS access keys on GitHub. What immediate steps will you take? 
+4.	A user wants to access AWS services using the AWS CLI. How will you enable programmatic access? 
+5.	Fifty employees require the same S3 permissions. How will you manage this efficiently? 
+6.	You must remove access permissions for 20 users at once. What is the easiest method? 
+7.	HR, Developers, and Admin teams need different levels of access. How will you organize permissions? 
+8.	An EC2 instance must access S3 without storing access keys. What is the correct approach? 
+9.	Account A needs to access resources in Account B. How can cross-account access be configured? 
+10.	A Lambda function must read and write data to DynamoDB. How will you assign permissions? 
+11.	A user needs administrator privileges for a short time. How can you grant this safely? 
+12.	A user should access only one specific S3 bucket. How do you restrict access? 
+13.	Users should be prevented from deleting any AWS resources. How can you enforce this? 
+14.	A user should be allowed to log in only during office hours. How can this be implemented? 
+15.	Access must be allowed only from the office network IP address. How can this be controlled? 
+16.	What are the best practices to manage IAM permissions securely?
+
+
+
+
+🚀 AMAZON LEX – HOTEL BOOKING BOT (DETAILED STEPS)
+🔹 Step 1: Open Amazon Lex
+Go to Amazon Web Services Console
+Search Amazon Lex
+Click Create bot
+🔹 Step 2: Create Bot
+
+Choose:
+
+✔ Create a blank bot
+Enter:
+Bot name → HotelBookingBot
+
+IAM Role:
+
+✔ Create a new role
+Keep defaults → Click Next
+Select:
+Language → English
+Voice → optional
+Click Done
+🔹 Step 3: Create Intent
+Go to Intents
+Click Add intent → Create intent
+
+Name:
+
+BookHotel
+Click Create
+🔹 Step 4: Add Sample Utterances
+
+Add user inputs:
+
+I want to book a hotel
+Book a room
+Reserve hotel
+I need a room
+
+👉 These are Utterances (user sentences)
+
+🔹 Step 5: Add Slot – Age (with Condition)
+Click Add slot
+Enter:
+Slot name → age
+Slot type → AMAZON.Number
+Prompt → What is your age?
+
+Mark:
+
+✔ Required
+🔥 Add Condition (IMPORTANT)
+
+Go to:
+
+Slots → Advanced options
+
+Scroll:
+
+Slot capture → success response → Conditional branching
+Click Add condition
+Add:
+Condition: {age} < 18
+Response: You are not eligible for hotel booking
+🔹 Step 6: Add Slot – Location
+Click Add slot
+Enter:
+Slot name → location
+Slot type → AMAZON.City
+Prompt → Which city do you want?
+Mark Required
+🔹 Step 7: Add Slot – Check-in Date
+Click Add slot
+Enter:
+Slot name → checkin
+Slot type → AMAZON.Date
+Prompt → What is your check-in date?
+Mark Required
+Optional:
+Retry prompt: Please provide valid date (e.g., 2026-03-25)
+🔹 Step 8: Add Slot – Nights
+Click Add slot
+Enter:
+Slot name → nights
+Slot type → AMAZON.Number
+Prompt → How many nights will you stay?
+Mark Required
+🔹 Step 9: Create Custom Slot Type (RoomType)
+Go to Slot Types
+
+Click:
+
+Add slot type → Create blank
+
+Name:
+
+RoomType
+Add values:
+Single
+Double
+Suite
+Save
+🔹 Use Custom Slot in Intent
+Go back to Intent
+Add slot:
+Slot name → roomType
+Slot type → RoomType
+🔹 Step 10: Add Response Cards (Buttons)
+Go to slot prompt
+
+Click:
+
+More prompt options → Add card group
+Add:
+Title → Select Room Type
+
+Buttons:
+
+Single → "Single"
+Double → "Double"
+Suite → "Suite"
+🔹 Step 11: Configure Responses
+Initial Response:
+Welcome to Hotel Booking! What is your name?
+Confirmation Prompt:
+Do you want to confirm booking in {location} for {nights} nights?
+🔹 Step 12: Build Bot
+Click Build
+Wait for success
+🔹 Step 13: Test Bot
+
+Use test panel:
+
+User: Book a hotel
+🎯 SAMPLE OUTPUT FLOW
+User: Book a hotel
+Bot: What is your age?
+User: 25
+
+Bot: Which city do you want?
+User: Hyderabad
+
+Bot: What is your check-in date?
+User: Tomorrow
+
+Bot: How many nights will you stay?
+User: 2
+
+Bot: Select room type
+User: Double
+
+Bot: Do you want to confirm booking in Hyderabad for 2 nights?
+User: Yes
+
+Bot: Booking confirmed.
+
+
+
+
+
