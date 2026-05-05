@@ -1,170 +1,748 @@
-Scenario-Based Questions
-Scenario 1: Application Not Loading
-You deployed an application using Elastic Beanstalk, but the application does not load and shows an error page.
-•	What could be the possible reasons for this issue? 
-•	Could deployment or configuration be incorrect? 
-•	How would you troubleshoot this problem? 
-________________________________________
-Scenario 2: Incorrect Application Structure
-Your application is deployed, but the expected output is not displayed.
-•	How does application structure affect deployment in Elastic Beanstalk? 
-•	What could happen if files are placed inside an extra folder? 
-•	How would you fix the structure issue? 
-________________________________________
-Scenario 3: Wrong Platform Selection
-While creating the environment, an incorrect platform was selected.
-•	Why is platform selection important in Elastic Beanstalk? 
-•	What kind of errors or behavior might occur? 
-•	How can you correct the platform without affecting the application? 
-________________________________________
-Scenario 4: Environment Health Warning
-The environment status shows Warning (Yellow) instead of healthy.
-•	What are possible reasons for this warning? 
-•	Which sections (Events, Logs, Metrics) would you check first? 
-•	How can you resolve health issues? 
-________________________________________
-Scenario 5: Application Errors in Logs
-Logs show a high number of application errors.
-•	What do such errors indicate? 
-•	Could this be due to misconfiguration or missing resources? 
-•	How would you analyze logs to identify the root cause? 
-________________________________________
-Scenario 6: Deployment Failure
-The application deployment fails during upload.
-•	What could be wrong with the deployment package? 
-•	Which logs would you check to diagnose the issue? 
-•	How can packaging errors affect deployment? 
-________________________________________
-Scenario 7: Works Locally but Not on Cloud
-The application works correctly on a local machine but fails after deployment.
-•	What environment differences could cause this issue? 
-•	Could configuration or dependency issues be responsible? 
-•	How would you debug using cloud logs? 
-________________________________________
-Scenario 8: Blank Output
-The application loads but shows no output.
-•	What could cause an application to display no output? 
-•	Could runtime errors or misconfigurations be responsible? 
-•	How would logs help in identifying the issue? 
-________________________________________
-Scenario 9: Application URL Not Accessible
-The application URL is not accessible after deployment.
-•	Could the environment still be launching? 
-•	What status indicators should be checked? 
-•	How can Events help identify the issue? 
-________________________________________
-Scenario 10: Resource Management Issue
-After completing the lab, resources were not terminated.
-•	What are the cost implications of leaving resources running? 
-•	Which AWS services continue running in the background? 
-•	How can all resources be properly terminated? 
-________________________________________
-Scenario 11: High Traffic Handling
-The application receives sudden high traffic.
-•	How does Elastic Beanstalk handle scaling? 
-•	What configurations should be enabled? 
-•	What happens if scaling is not configured? 
-________________________________________
-Scenario 12: Application Update Not Reflected
-Changes are made to the application, but users still see the old version.
-•	Could deployment issues be the reason? 
-•	How can caching affect the output? 
-•	How would you ensure the latest version is visible?
+Elastic Load Balancer with Auto Scaling
+🔹 STEP 1: Launch EC2 Instances (2 servers)
+👉 Create Instance 1
+Go to EC2 → Launch Instance
+Name: webserver-1
+AMI: Amazon Linux
+Instance type: t2.micro
+Security Group:
+SSH (22) → My IP
+HTTP (80) → 0.0.0.0/0
+👉 Connect & setup Apache
+sudo yum update -y
+sudo yum install httpd -y
+sudo systemctl start httpd
+sudo systemctl enable httpd
+echo "This is Server 1" > /var/www/html/index.html
+👉 Create Instance 2 (same steps)
+
+Change only:
+
+echo "This is Server 2" > /var/www/html/index.html
+🔹 STEP 2: Create Security Group for Load Balancer
+
+Go to:
+EC2 → Security Groups → Create
+
+Name: lb-sg
+Inbound:
+HTTP (80) → 0.0.0.0/0
+🔹 STEP 3: Create Application Load Balancer
+
+Go to:
+EC2 → Load Balancers → Create → Application Load Balancer
+
+👉 Basic config
+Name: my-alb
+Scheme: Internet-facing
+IP: IPv4
+👉 Network Mapping (VERY IMPORTANT)
+
+Select:
+
+VPC: same as EC2
+Subnets:
+✔ us-east-1a
+✔ us-east-1b
+✔ (optional) us-east-1c
+👉 Security Group
+Select: lb-sg
+👉 Listener
+HTTP : 80 (default)
+🔹 STEP 4: Create Target Group
+Name: web-servers-tg
+Target type: Instance
+Protocol: HTTP
+Port: 80
+👉 Health Check
+Path: /
+👉 Register Targets
+
+Select:
+
+webserver-1
+webserver-2
+
+Click:
+✔ Include → Register
+
+🔹 STEP 5: Attach Target Group to ALB
+Listener → Forward to web-servers-tg
+🔹 STEP 6: WAIT (Important)
+
+Wait 1–2 minutes until:
+
+👉 Target Group → Status = Healthy
+
+🔹 STEP 7: Fix Security (MOST IMPORTANT REAL ISSUE)
+✅ EC2 Security Group
+
+Must allow:
+
+HTTP (80) → 0.0.0.0/0
+OR
+HTTP (80) → ALB Security Group
+✅ ALB Security Group
+
+Must allow:
+
+HTTP (80) → 0.0.0.0/0
+🔹 STEP 8: Test
+
+Copy DNS:
+
+http://my-alb-xxxx.us-east-1.elb.amazonaws.com
 
 
 
-Scenario Based Questions (ELB & Auto Scaling) 
-1)	A company hosts a web application on two EC2 instances, but sometimes one server becomes overloaded while the other remains idle.
-Which AWS service can distribute incoming traffic evenly across both servers?
-2)	A developer created multiple EC2 instances for a web application but wants users to access the application using a single entry point instead of multiple server IP addresses.
-Which AWS service can solve this problem?
-3)	An organization notices that during peak hours their application receives heavy traffic and servers become slow. During non-peak hours, many servers remain unused.
-Which AWS feature can automatically increase or decrease the number of servers based on demand?
-4)	A company deployed a load balancer but users are still getting errors because traffic is being sent to an unhealthy server.
-Which load balancer feature helps detect and stop sending traffic to failed servers?
-5)	A developer wants to automatically launch additional EC2 instances when CPU utilization exceeds 70%.
-Which AWS service configuration should be used to implement this requirement?
-6)	An application receives traffic from users worldwide, and the company wants to ensure that requests are distributed across multiple EC2 instances for high availability.
-How can Elastic Load Balancer help in this architecture?
-7)	A developer configured an Auto Scaling Group, but new instances are not launching even when traffic increases.
-What configuration might be missing or incorrect?
-8)	A company wants to maintain a minimum of two running servers at all times, but automatically add more servers when traffic increases.
-Which Auto Scaling configuration parameters should be defined?
-9)	A web application running on EC2 instances behind a load balancer suddenly crashes when traffic spikes.
-How can combining Elastic Load Balancer with Auto Scaling improve system reliability?
-10)	A developer created an Auto Scaling Group but forgot to attach it to a load balancer.
-What potential problem might occur in handling user requests?
-11)	A company wants to replace unhealthy EC2 instances automatically to maintain application availability.
-Which AWS feature can automatically detect and replace failed instances?
-12)	A developer wants to monitor the performance of EC2 instances and trigger scaling actions based on metrics such as CPU usage or network traffic.
-Which AWS service can provide these monitoring metrics?
-13)	A startup expects sudden spikes in website traffic during a promotional event and wants the infrastructure to automatically handle the load.
-How can Auto Scaling help manage this situation?
-14)	A developer wants to ensure that incoming user requests are routed to servers based on HTTP or HTTPS protocols.
-Which type of AWS load balancer should be used?
-15)	A company wants to build a highly available architecture where traffic is automatically balanced across multiple servers and new servers are launched when demand increases.
-Which AWS services should be combined to achieve this solution?
-Scenario Based Questions (SNS, SQS, S3-SNS-SQS-Lambda)
-1.	A company wants to send notifications to multiple users whenever an important system event occurs. The same message must be delivered to email, SMS, and application subscribers simultaneously.
-Which AWS service can be used to implement this publish-subscribe messaging system?
-2.	A developer created an SNS topic and added an email subscription, but the subscriber is not receiving any notifications.
-What could be the possible reason for this issue?
-3.	An organization wants to automatically notify administrators via email whenever a new file is uploaded to an S3 bucket.
-How can this be implemented using AWS services?
-4.	A developer configured an S3 bucket to trigger an SNS notification on file upload, but the message is not reaching the SNS topic.
-What configuration or permission issue might cause this problem?
-5.	A company wants to store incoming messages temporarily so that applications can process them later without losing data even if the system is busy.
-Which AWS messaging service should be used for this requirement?
-6.	A developer sends messages to an SQS queue, but when checking the queue no messages appear.
-What possible reasons could cause this issue?
-7.	A company wants to process thousands of messages coming from different applications without overloading the processing system.
-How does Amazon SQS help in handling this situation?
-8.	A developer wants to ensure that messages are processed automatically from an SQS queue without manually polling the queue.
-Which AWS service can be configured to automatically consume messages from SQS?
-9.	An application uploads files to S3, and the company wants the upload event to trigger a workflow that sends notifications and processes the message later.
-How can this be designed using S3, SNS, SQS, and Lambda?
-10.	A developer configured an SNS topic to send messages to an SQS queue, but the queue is not receiving any messages.
-What policy configuration might be missing?
-11.	A company wants to decouple its application components so that failures in one component do not affect others.
-Which AWS service combination can be used to implement loosely coupled communication?
-12.	A Lambda function is configured to process messages from an SQS queue, but the function is not being triggered.
-What possible configuration issue might cause this problem?
-13.	An organization wants to ensure that uploaded files in S3 trigger notifications, store messages reliably, and process them asynchronously.
-Which serverless architecture using AWS services can achieve this?
-14.	A developer wants to monitor the processing of messages handled by a Lambda function triggered by SQS.
-Which AWS service can be used to view logs and troubleshoot the function execution?
-15.	A company wants to build a fully serverless event-driven system where file uploads automatically trigger notifications and background processing without managing servers.
-Which AWS services can be combined to build this architecture?
-16.	•  A company wants to send a notification to multiple applications whenever a new order is placed in their system. Each application should receive the same message and process it independently.
-Which AWS service can be used to implement this publish-subscribe communication model?
-17.	•  A developer configured an SNS topic and connected it to an SQS queue, but the messages published to SNS are not appearing in the queue.
-What configuration or permission might be missing in this setup?
-18.	•  An application generates a large number of events, and the development team wants to ensure that these events are stored safely until they are processed by another service.
-Which AWS service can be used to reliably store and deliver these messages?
-19.	A company uploads files to an S3 bucket and wants to process these files using Lambda, but only after the messages are safely stored to avoid data loss during high traffic.
-Which AWS architecture using SNS and SQS can help achieve this requirement?
-20.	A developer notices that messages remain in an SQS queue even after being processed by a Lambda function.
-What configuration or step might be missing to ensure messages are removed after processing?
+
+📄 WEEK-10: Elastic Beanstalk (Steps)
+🔹 Step 1: Open Elastic Beanstalk
+Login to Amazon Web Services Console
+Search Elastic Beanstalk
+Click Create Application
+🔹 Step 2: Create Application
+Enter Application Name (e.g., MyApp)
+Add description (optional)
+Click Create
+🔹 Step 3: Create Environment
+Click Create Environment
+Select Web Server Environment
+Click Select
+🔹 Step 4: Configure Environment
+Enter Environment Name
+Choose Platform:
+Tomcat / Node.js / Python / PHP
+Under Application Code:
+Select Upload your code
+Upload .war / .zip
+🔹 Step 5: Configure Service Access
+Service Role → Select existing (LabRole)
+EC2 Key Pair → Optional
+EC2 Instance Profile → Select (LabInstanceProfile)
+🔹 Step 6: Configure Network
+Select VPC
+Select Subnets
+Enable Public IP
+🔹 Step 7: Instance & Scaling
+Instance type → t2.micro
+Min instances → 1
+Max instances → 2
+Enable Load Balancer
+🔹 Step 8: Review & Create
+Click Review
+Click Create
+🔹 Step 9: Deployment
+
+AWS automatically creates:
+
+EC2 instances
+Load Balancer
+Auto Scaling Group
+Security Groups
+🔹 Step 10: Access Application
+Go to Environment
+Copy URL
+Open in browser
+🔹 Step 11: Update Application
+Go to Environment
+Click Upload and Deploy
+Upload new version
 
 
-scenario-based questions on IAM Roles, Users, Groups, and Policies in Amazon Web Services.
-1.	A new developer joins your team and needs access to EC2 and S3. How will you grant permissions securely? 
-2.	A user requires access to AWS resources for only two days. How can you provide temporary access? 
-3.	A developer accidentally exposed AWS access keys on GitHub. What immediate steps will you take? 
-4.	A user wants to access AWS services using the AWS CLI. How will you enable programmatic access? 
-5.	Fifty employees require the same S3 permissions. How will you manage this efficiently? 
-6.	You must remove access permissions for 20 users at once. What is the easiest method? 
-7.	HR, Developers, and Admin teams need different levels of access. How will you organize permissions? 
-8.	An EC2 instance must access S3 without storing access keys. What is the correct approach? 
-9.	Account A needs to access resources in Account B. How can cross-account access be configured? 
-10.	A Lambda function must read and write data to DynamoDB. How will you assign permissions? 
-11.	A user needs administrator privileges for a short time. How can you grant this safely? 
-12.	A user should access only one specific S3 bucket. How do you restrict access? 
-13.	Users should be prevented from deleting any AWS resources. How can you enforce this? 
-14.	A user should be allowed to log in only during office hours. How can this be implemented? 
-15.	Access must be allowed only from the office network IP address. How can this be controlled? 
-16.	What are the best practices to manage IAM permissions securely?
 
+🚀 FULL STEPS: S3 → SNS → SQS → Lambda (WITH ROLES)
+🔹 PART 1: SNS → EMAIL
+Step 1: Create SNS Topic
+Go to AWS Console → Search SNS
+Click Topics → Create topic
+Select:
+Type → Standard
+Name → MyEmailTopic
+Click Create
+Step 2: Create Email Subscription
+Open topic → Subscriptions
+Click Create subscription
+Select:
+Protocol → Email
+Endpoint → your email
+Click Create
+Step 3: Confirm Subscription
+Open email → Click Confirm
+Step 4: Test SNS
+Click Publish message → Send test message
+🔹 PART 2: S3 → SNS → EMAIL
+Step 5: Create S3 Bucket
+Go to S3 → Create bucket
+Name → my-upload-bucket
+Region → same as SNS
+Create
+Step 6: Add SNS Access Policy
+Open SNS Topic → Edit policy
+Add S3 permission (you already configured correctly)
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Allow-S3-Publish",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Action": "SNS:Publish",
+      "Resource": "arn:aws:sns:us-east-1:406808758246:MyEmailTopic",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:s3:::my-upload-bucket"
+        },
+        "StringEquals": {
+          "aws:SourceAccount": "406808758246"
+        }
+      }
+    }
+  ]
+}
+🔥 WHERE TO CHANGE
+"Resource": "arn:aws:sns:us-east-1:406808758246:MyEmailTopic"
+
+👉 Replace with your SNS Topic ARN
+
+👉 Replace with your S3 bucket name
+
+👉 Replace with your AWS Account ID
+
+Step 7: Configure S3 Event
+Open bucket → Properties
+Event notifications → Create
+Select:
+Event → All object create
+Destination → SNS → Select topic
+Save
+Step 8: Test
+Upload file → Email received ✅
+🔹 PART 3: SQS
+Step 9: Create SQS Queue
+Go to SQS → Create queue
+Type → Standard
+Name → MyQueue
+Create
+Step 10: Subscribe SQS to SNS
+Open SNS Topic
+Click Create subscription
+Select:
+Protocol → Amazon SQS
+Endpoint → MyQueue
+Create
+Step 11: Add SQS Access Policy
+Open SQS → Edit policy
+Allow SNS to send message (you already configured)
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Allow-SNS-SendMessage",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "sns.amazonaws.com"
+      },
+      "Action": "SQS:SendMessage",
+      "Resource": "arn:aws:sqs:us-east-1:406808758246:MyQueue",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "arn:aws:sns:us-east-1:406808758246:MyEmailTopic"
+        }
+      }
+    }
+  ]
+}
+
+🔥 WHERE TO CHANGE
+"Resource": "arn:aws:sqs:us-east-1:406808758246:MyQueue"
+
+👉 Replace with your SQS ARN
+
+👉 Replace with your SNS ARN
+
+🔹 PART 4: S3 → SNS → SQS
+Step 12: Verify Flow
+
+Upload file:
+
+S3 → SNS → SQS
+
+Check:
+
+SQS → Poll messages → message received ✅
+🔹 PART 5: Lambda (IMPORTANT – ROLE HERE)
+Step 13: Create Lambda Function
+Go to Lambda → Create function
+Select:
+Author from scratch
+Name → SQSConsumerFunction
+Runtime → Python
+🔥 IMPORTANT (ROLE SELECTION)
+
+👉 Here you MUST select:
+
+Execution Role:
+✔ Use existing role
+✔ Select → LabRole  ✅
+Step 14: Add SQS Trigger
+Open Lambda
+Click Add Trigger
+Select:
+SQS
+Choose MyQueue
+Add
+Step 15: Add Code
+def lambda_handler(event, context):
+    for record in event['Records']:
+        print("Message received:")
+        print(record['body'])
+    return {
+        'statusCode': 200
+    }
+
+advanced parse json
+import json
+
+def lambda_handler(event, context):
+    for record in event['Records']:
+
+        message = json.loads(record['body'])
+        s3_info = message['Records'][0]['s3']
+
+        bucket = s3_info['bucket']['name']
+        key = s3_info['object']['key']
+
+        print("Bucket:", bucket)
+        print("File:", key)
+
+    return {
+        'statusCode': 200
+    }
+Click Deploy
+
+🔹 STEP 16: FINAL TEST
+Upload file to S3
+Flow happens:
+S3
+ ↓
+SNS
+ ↓
+SQS
+ ↓
+Lambda
+✅ Verify
+SQS → message received
+Lambda → logs in CloudWatch
+
+
+
+📄 AWS Lambda – Basic Python Program (Steps)
+🔹 Step 1: Open Lambda
+Go to Amazon Web Services Console
+Search Lambda
+Open service
+🔹 Step 2: Create Function
+Click Create function
+Select Author from scratch
+Enter:
+Function name → basic-python-lambda
+Runtime → Python 3.x
+Architecture → x86_64
+🔥 Step 3: Select Role (IMPORTANT)
+
+Execution Role:
+
+✔ Use existing role
+✔ Select → LabRole
+🔹 Step 4: Default Code (provided by AWS)
+import json
+def lambda_handler(event, context):
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+    }
+🔹 Step 5: Write Custom Code (Addition)
+import json
+def lambda_handler(event, context):
+    a = event.get('num1', 0)
+    b = event.get('num2', 0)
+    result = a + b
+    return {
+        'statusCode': 200,
+        'body': json.dumps({
+            'sum': result
+        })
+    }
+🔹 Step 6: Deploy
+Click Deploy
+🔹 Step 7: Create Test Event
+Click Test
+Create new event
+Enter JSON:
+{
+  "num1": 10,
+  "num2": 20
+}
+Click Test
+🔹 Step 8: View Output
+{
+  "statusCode": 200,
+  "body": "{\"sum\": 30}"
+}
+
+✔ Lambda executed successfully
+
+🔹 Step 9: Configuration
+Go to General configuration → Edit
+Set:
+Memory → 128 MB
+Timeout → 3 sec
+Architecture → x86_64
+Save
+
+
+
+
+📄 AWS Lambda Trigger from S3 → Update DynamoDB
+🔹 Step 1: Create S3 Bucket
+Go to AWS Console → S3
+Click Create bucket
+Enter:
+Bucket name → my-upload-bucket
+Region → same for all services
+Click Create
+🔹 Step 2: Create DynamoDB Table
+Go to DynamoDB → Create table
+Enter:
+Table name → newtable2 ✅ (IMPORTANT – used in code)
+Partition key → unique (String)
+Click Create table
+🔹 Step 3: Create Lambda Function
+Go to Lambda → Create function
+Select:
+Author from scratch
+Function name → S3ToDynamoDB
+Runtime → Python 3.x
+🔥 Step 4: Select Role (IMPORTANT)
+
+👉 Under Permissions:
+
+✔ Use existing role
+✔ Select → LabRole
+🔹 Step 5: Add Code (EDIT REQUIRED)
+
+Paste this code:
+
+import boto3
+from uuid import uuid4
+
+def lambda_handler(event, context):
+    print("Event received:", event)  
+    dynamodb = boto3.resource('dynamodb')
+
+    # 🔥 CHANGE THIS (Table name must match DynamoDB)
+    dynamoTable = dynamodb.Table('newtable2')
+
+    if 'Records' in event:
+        for record in event['Records']:
+
+            bucket_name = record['s3']['bucket']['name']
+            object_key = record['s3']['object']['key']
+            size = record['s3']['object'].get('size', -1)
+            event_name = record['eventName']
+            event_time = record['eventTime']
+
+            print("Bucket:", bucket_name)   
+            print("File:", object_key) 
+            dynamoTable.put_item(
+                Item={
+                    'unique': str(uuid4()),
+                    'Bucket': bucket_name,
+                    'Object': object_key,
+                    'Size': size,
+                    'Event': event_name,
+                    'EventTime': event_time
+                }
+            )
+
+    else:
+        print("No S3 event received")
+
+    return {
+        "statusCode": 200,
+        "body": "Data stored in DynamoDB"
+    }
+🔥 WHERE YOU MUST CHANGE (IMPORTANT)
+1️⃣ DynamoDB Table Name
+dynamoTable = dynamodb.Table('newtable2')
+
+👉 Replace if your table name is different
+
+2️⃣ (Optional) Attributes
+
+You can modify fields:
+
+'Bucket', 'Object', 'Size', 'Event'
+🔹 Step 6: Deploy
+Click Deploy
+🔹 Step 7: Add S3 Trigger
+In Lambda → Click Add trigger
+Select:
+Source → S3
+Bucket → my-upload-bucket
+Event → All object create events
+Click Add
+🔹 Step 8: Permissions Check (IMPORTANT)
+
+Your LabRole must have:
+
+S3 read access
+DynamoDB write access
+
+👉 Usually already available in labs
+
+🔹 Step 9: Test
+Go to S3 bucket
+Upload any file
+🔹 Step 10: Verify
+Go to DynamoDB → Table → Explore items
+You will see entries like:
+{
+  "Bucket": "my-upload-bucket",
+  "Object": "test.txt",
+  "Size": 123,
+  "Event": "ObjectCreated:Put"
+}
+
+
+
+
+📄 Attach IAM Role to EC2 (S3 Access Without Keys)
+🔹 Step 1: Create IAM Role
+Go to Amazon Web Services Console → IAM
+Click Roles → Create role
+Select:
+Trusted entity → AWS Service
+Use case → EC2
+Click Next
+🔹 Step 2: Add Permissions
+Search → AmazonS3FullAccess
+Select policy
+Click Next
+🔹 Step 3: Name Role
+Role name → EC2-S3-Role
+Click Create role
+🔹 Step 4: Attach Role to EC2
+Go to EC2 Dashboard
+Select your instance
+
+Click:
+
+Actions → Security → Modify IAM role
+
+Select:
+
+EC2-S3-Role
+Click Update
+🔹 Step 5: Verify in EC2 (SSH)
+
+Run:
+
+aws s3 ls
+aws ec2 describe-instances
+🔹 Step 6: Expected Output
+✅ aws s3 ls → Works
+❌ aws ec2 describe-instances → Unauthorized
+🔹 Reason (Important)
+IAM Role gives temporary credentials automatically
+S3 works → because permission added
+EC2 fails → no EC2 permission
+🔹 Step 7: Fix (Optional)
+
+Add EC2 permission to role:
+
+Attach:
+
+AmazonEC2ReadOnlyAccess
+
+
+
+
+🚀 PART A: GUI ACCESS (AWS Console)
+🎯 Objective
+
+Create a restricted IAM user and verify:
+
+❌ EC2 access blocked
+✅ S3 access allowed
+🔹 Step 1: Login as Root User
+Go to Amazon Web Services Console
+Login using root email + password
+
+👉 Root = full admin (only used for setup)
+
+🔹 Step 2: Open IAM
+In search bar → type IAM
+Click IAM service
+
+👉 IAM = Identity & Access Management (controls permissions)
+
+🔹 Step 3: Create IAM User
+Go to Users → Create user
+Enter:
+Username → S3_Specialist
+
+Enable:
+
+✔ Provide user access to AWS Management Console
+Set:
+Custom password (or auto-generated)
+🔹 Step 4: Set Permissions
+
+Select:
+
+✔ Attach policies directly
+
+Search:
+
+AmazonS3FullAccess
+Select it
+
+👉 Meaning:
+
+User can ONLY use S3 (not EC2, not IAM, etc.)
+🔹 Step 5: Review & Create
+Click Next → Create user
+Download .csv file
+
+👉 Contains:
+
+Username
+Password
+Login URL
+🔹 Step 6: Note Important Details
+Copy:
+Account ID (12 digits)
+Sign-in URL
+🔹 Step 7: Logout Root User
+
+👉 Always logout root after setup (security best practice)
+
+🔹 Step 8: Login as IAM User
+Open Sign-in URL
+Enter:
+Account ID
+Username → S3_Specialist
+Password
+🔹 Step 9: Verify Permissions (VERY IMPORTANT)
+❌ Test 1: EC2 Access
+Go to EC2
+👉 Result:
+Access Denied ❌
+
+👉 Why:
+
+No EC2 permissions assigned
+✅ Test 2: S3 Access
+Go to S3
+Create bucket
+
+👉 Result:
+
+Success ✅
+
+👉 Why:
+
+AmazonS3FullAccess attached
+🧠 CONCEPT (VERY IMPORTANT)
+IAM User = Identity
+Policy = Permissions
+🚀 PART B: CLI ACCESS (Programmatic)
+🎯 Objective
+
+Access AWS using Access Keys instead of password
+
+🔹 Step 10: Generate Access Keys
+Login as Admin/Root
+
+Go to:
+
+IAM → Users → S3_Specialist
+
+Open:
+
+Security credentials tab
+
+Click:
+
+Create access key
+
+Select:
+
+CLI
+Download .csv
+🔥 Important
+
+File contains:
+
+Access Key ID
+Secret Access Key
+
+👉 If lost → must recreate
+
+🔹 Step 11: Install AWS CLI
+Download AWS CLI from official site
+Install on your system
+🔹 Step 12: Configure CLI
+
+Open terminal:
+
+aws configure
+
+Enter:
+
+Access Key ID → from CSV
+Secret Access Key → from CSV
+Region → ap-south-1 (or your region)
+Output → json
+🔹 Step 13: Verify CLI
+✅ Test 1: S3 Access
+aws s3 ls
+
+👉 Output:
+
+Bucket list ✅
+✅ Test 2: Create Bucket
+aws s3 mb s3://your-unique-name
+
+👉 Success
+
+❌ Test 3: IAM Access
+aws iam list-users
+
+👉 Output:
+
+AccessDenied ❌
+🎯 FINAL UNDERSTANDING
+Same IAM policy controls BOTH:
+
+GUI (Console)
+CLI (Commands)
+🔥 CORE CONCEPT (EXAM GOLD)
+Authentication → Who you are (User / Access Keys)
+Authorization → What you can do (Policies)
+🚀 FINAL FLOW
+IAM User
+   ↓
+Policy (AmazonS3FullAccess)
+   ↓
+Access:
+   ✔ S3
+   ❌ EC2
+   ❌ IAM
 
 
 
